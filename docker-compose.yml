@@ -1,0 +1,53 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: members-db
+    environment:
+      POSTGRES_USER: members
+      POSTGRES_PASSWORD: members_secret
+      POSTGRES_DB: members
+    ports:
+      - "5435:5432"
+    volumes:
+      - members_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U members"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: members-backend
+    ports:
+      - "8082:8082"
+    environment:
+      APP_ENV: production
+      PORT: 8082
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: members
+      DB_PASSWORD: members_secret
+      DB_NAME: members
+      JWT_SECRET: c01ab85b0fe8fcac447abc44125bcedc50d52c6bba4ba1ff6b6e7db0f4894ffd
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URL: ${GOOGLE_REDIRECT_URL:-http://localhost:8082/api/auth/google/callback}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: members-frontend
+    ports:
+      - "3003:80"
+    depends_on:
+      - backend
+
+volumes:
+  members_pgdata:
