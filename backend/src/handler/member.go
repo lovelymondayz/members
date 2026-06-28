@@ -42,7 +42,7 @@ func (h *MemberHandler) GetMembers(c *gin.Context) {
 		return
 	}
 
-	// Super admin can query any store
+	// Super admin: return all members if no store_id specified
 	queryStoreID := c.Query("store_id")
 	if queryStoreID != "" {
 		members, err := h.repo.FindByStoreID(queryStoreID)
@@ -54,7 +54,13 @@ func (h *MemberHandler) GetMembers(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusBadRequest, gin.H{"error": "store_id is required"})
+	// Super admin with no store_id → return all members
+	members, err := h.repo.FindAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch members"})
+		return
+	}
+	c.JSON(http.StatusOK, members)
 }
 
 // CreateMember godoc

@@ -9,13 +9,14 @@ interface Invoice {
   status: 'draft' | 'sent' | 'paid' | 'overdue' | 'cancelled'
   description?: string
   due_date?: string
-  member?: { member_code: string; user_name?: string }
+  member_code?: string
+  member_name?: string
 }
 
 interface Member {
   member_id: string
   member_code: string
-  user?: { name: string }
+  user_name?: string
 }
 
 const statusColors: Record<string, string> = {
@@ -117,7 +118,7 @@ export default function InvoicesPage() {
                 <option value="">Select member...</option>
                 {members?.map((m) => (
                   <option key={m.member_id} value={m.member_id}>
-                    {m.user?.name || m.member_code}
+                    {m.user_name || m.member_code}
                   </option>
                 ))}
               </select>
@@ -189,7 +190,7 @@ export default function InvoicesPage() {
               <tr key={inv.invoice_id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 text-sm font-mono text-gray-600">{inv.invoice_number}</td>
                 <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                  {inv.member?.user_name || inv.member?.member_code || '—'}
+                  {inv.member_name || inv.member_code || '—'}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-900">Rp {inv.amount.toLocaleString('id-ID')}</td>
                 <td className="px-6 py-4">

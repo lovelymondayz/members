@@ -5,12 +5,19 @@ import { useAuthStore } from '../store/authStore'
 export default function DashboardPage() {
   const { user } = useAuthStore()
 
+  const isSuperAdmin = user?.role === 'super_admin'
+
   const { data: stats } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
       try {
-        const res = await api.get('/admin/dashboard')
-        return res.data as { total_stores: number; total_members: number; total_revenue: number }
+        const endpoint = isSuperAdmin ? '/admin/dashboard' : '/members'
+        const res = await api.get(endpoint)
+        if (isSuperAdmin) {
+          return res.data as { total_stores: number; total_members: number; total_revenue: number }
+        }
+        const members = res.data as unknown[]
+        return { total_stores: 0, total_members: members.length, total_revenue: 0 }
       } catch {
         return null
       }

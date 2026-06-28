@@ -58,7 +58,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 			"id":    user.UserID,
 			"name":  user.Name,
 			"email": user.Email,
-			"role":  user.RoleID,
+			"role":  roleName(user.RoleID),
 		},
 	})
 }
@@ -88,9 +88,22 @@ func (h *AuthHandler) Register(c *gin.Context) {
 			"id":    user.UserID,
 			"name":  user.Name,
 			"email": user.Email,
-			"role":  user.RoleID,
+			"role":  roleName(user.RoleID),
 		},
 	})
+}
+
+func roleName(roleID uint) string {
+	switch roleID {
+	case 1:
+		return "super_admin"
+	case 2:
+		return "admin"
+	case 3:
+		return "member"
+	default:
+		return "unknown"
+	}
 }
 
 // GoogleLogin godoc

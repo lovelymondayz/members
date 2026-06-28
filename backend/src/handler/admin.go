@@ -62,22 +62,21 @@ func (h *AdminHandler) CreateAdmin(c *gin.Context) {
 // @Router /admin/admins [get]
 // @Security BearerAuth
 func (h *AdminHandler) GetAdmins(c *gin.Context) {
-	admins, err := config.DB.Preload("Role").Where("role_id IN ?", []uint{1, 2}).Find(&[]models.User{}).Rows()
+	var users []models.User
+	err := config.DB.Where("role_id IN ?", []uint{1, 2}).Order("created_at DESC").Find(&users).Error
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch admins"})
 		return
 	}
-	defer admins.Close()
 
 	var result []gin.H
-	for admins.Next() {
-		var u models.User
-		config.DB.ScanRows(admins, &u)
+	for _, u := range users {
 		result = append(result, gin.H{
-			"user_id": u.UserID,
-			"name":    u.Name,
-			"email":   u.Email,
-			"role_id": u.RoleID,
+			"user_id":   u.UserID,
+			"name":      u.Name,
+			"email":     u.Email,
+			"role_id":   u.RoleID,
+			"role":      roleName(u.RoleID),
 			"is_active": u.IsActive,
 		})
 	}

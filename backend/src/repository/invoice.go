@@ -63,6 +63,25 @@ func (r *InvoiceRepository) FindByMemberID(memberID string) ([]models.Invoice, e
 	return invoices, err
 }
 
+func (r *InvoiceRepository) FindAll() ([]models.Invoice, error) {
+	var invoices []models.Invoice
+	err := r.db.Order("created_at DESC").Find(&invoices).Error
+	if err != nil {
+		return invoices, err
+	}
+	for i := range invoices {
+		var member models.Member
+		r.db.First(&member, "member_id = ?", invoices[i].MemberID)
+		if member.UserID != nil {
+			var user models.User
+			r.db.First(&user, "user_id = ?", *member.UserID)
+			invoices[i].MemberName = user.Name
+		}
+		invoices[i].MemberCode = member.MemberCode
+	}
+	return invoices, nil
+}
+
 func (r *InvoiceRepository) Create(invoice *models.Invoice) error {
 	return r.db.Create(invoice).Error
 }

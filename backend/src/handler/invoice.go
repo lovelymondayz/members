@@ -58,7 +58,13 @@ func (h *InvoiceHandler) GetInvoices(c *gin.Context) {
 	}
 
 	if !hasStore {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "store_id is required"})
+		// Super admin with no store_id → return all invoices
+		invoices, err := h.invoiceRepo.FindAll()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch invoices"})
+			return
+		}
+		c.JSON(http.StatusOK, invoices)
 		return
 	}
 

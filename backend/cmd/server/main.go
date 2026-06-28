@@ -38,6 +38,7 @@ func main() {
 
 	authHandler := handler.NewAuthHandler(authSvc)
 	adminHandler := handler.NewAdminHandler(authSvc)
+	storeHandler := handler.NewStoreHandler(storeRepo)
 	memberHandler := handler.NewMemberHandler(memberRepo)
 	invoiceHandler := handler.NewInvoiceHandler(invoiceRepo, paymentRepo)
 
@@ -94,6 +95,11 @@ func main() {
 	invoices.DELETE("/:id", invoiceHandler.DeleteInvoice)
 	invoices.POST("/:id/pay", invoiceHandler.RecordPayment)
 	invoices.GET("/member", invoiceHandler.GetMemberInvoices)
+
+	stores := protected.Group("/stores")
+	stores.Use(middleware.RoleRequired("super_admin"))
+	stores.GET("", storeHandler.GetStores)
+	stores.POST("", storeHandler.CreateStore)
 
 	admin := protected.Group("/admin")
 	admin.Use(middleware.RoleRequired("super_admin"))

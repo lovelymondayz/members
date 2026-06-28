@@ -32,6 +32,23 @@ func (r *MemberRepository) FindByStoreID(storeID string) ([]models.Member, error
 	return members, err
 }
 
+func (r *MemberRepository) FindAll() ([]models.Member, error) {
+	var members []models.Member
+	err := r.db.Order("created_at desc").Find(&members).Error
+	for i := range members {
+		if members[i].UserID != nil {
+			var user models.User
+			r.db.First(&user, "user_id = ?", *members[i].UserID)
+			members[i].UserName = user.Name
+		}
+		var store models.Store
+		r.db.First(&store, "store_id = ?", members[i].StoreID)
+		members[i].StoreName = store.Name
+		members[i].StoreCardColor = store.CardColorHex
+	}
+	return members, err
+}
+
 func (r *MemberRepository) FindByID(id string) (*models.Member, error) {
 	var member models.Member
 	err := r.db.First(&member, "member_id = ?", id).Error

@@ -26,6 +26,12 @@ func (r *StoreRepository) FindByID(id string) (*models.Store, error) {
 	return &store, err
 }
 
+func (r *StoreRepository) FindAll() ([]models.Store, error) {
+	var stores []models.Store
+	err := r.db.Order("created_at desc").Find(&stores).Error
+	return stores, err
+}
+
 func (r *StoreRepository) Create(store *models.Store) error {
 	return r.db.Create(store).Error
 }
