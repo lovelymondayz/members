@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/lovelymondayz/members/backend/src/config"
@@ -25,6 +26,7 @@ func main() {
 		&models.Payment{},
 	)
 	seedRoles()
+	seedDummyData()
 
 	middleware.SetJWTSecret(cfg.JWTSecret)
 
@@ -123,4 +125,105 @@ func seedRoles() {
 	for _, role := range roles {
 		config.DB.FirstOrCreate(&role, models.Role{RoleID: role.RoleID})
 	}
+}
+
+func seedDummyData() {
+	// Skip if data already exists
+	var count int64
+	config.DB.Model(&models.User{}).Count(&count)
+	if count > 3 {
+		log.Println("Seed: data exists, skipping dummy seed")
+		return
+	}
+
+	log.Println("Seed: creating dummy data...")
+
+	// ─── Admin user + store ───
+	hashedPass, _ := service.HashPassword("admin123")
+	adminUser := &models.User{
+		RoleID:   2,
+		Email:    "admin@tokotest.id",
+		Password: hashedPass,
+		Name:     "Toko Test Admin",
+	}
+	config.DB.Create(adminUser)
+	adminStore := &models.Store{
+		AdminID:      adminUser.UserID,
+		Name:         "Toko Test",
+		CardColorHex: "#059669",
+	}
+	config.DB.Create(adminStore)
+
+	// ─── Members for admin store ───
+	members := []models.Member{
+		{
+			StoreID:    adminStore.StoreID,
+			MemberCode: "M001",
+			Tier:       "gold",
+		},
+		{
+			StoreID:    adminStore.StoreID,
+			MemberCode: "M002",
+			Tier:       "silver",
+		},
+		{
+			StoreID:    adminStore.StoreID,
+			MemberCode: "M003",
+			Tier:       "premium",
+		},
+	}
+	for i := range members {
+		config.DB.Create(&members[i])
+	}
+
+	// ─── Invoices for first two members ───
+	now := time.Now()
+	invoices := []models.Invoice{
+		{
+			StoreID:       adminStore.StoreID,
+			MemberID:      members[0].MemberID,
+			InvoiceNumber: "INV-001",
+			Amount:        150000,
+			Description:   "Pembelian paket Gold",
+			Status:        models.InvoicePaid,
+			DueDate:       &now,
+		},
+		{
+			StoreID:       adminStore.StoreID,
+			MemberID:      members[1].MemberID,
+			InvoiceNumber: "INV-002",
+			Amount:        85000,
+			Description:   "Pembelian paket Silver",
+			Status:        models.InvoiceSent,
+			DueDate:       &now,
+		},
+		{
+			StoreID:       adminStore.StoreID,
+			MemberID:      members[0].MemberID,
+			InvoiceNumber: "INV-003",
+			Amount:        250000,
+			Description:   "Top up saldo",
+			Status:        models.InvoiceDraft,
+			DueDate:       &now,
+		},
+	}
+	for i := range invoices {
+		config.DB.Create(&invoices[i])
+	}
+
+	// ─── Payment for first invoice ───
+	config.DB.Create(&models.Payment{
+		InvoiceID: invoices[0].InvoiceID,
+		Amount:    150000,
+		Method:    "cash",
+		Reference: "PAY-001",
+		Note:      "Lunas tunai",
+		PaidAt:    now,
+	})
+
+	log.Println("Seed: dummy data created ✅")
+	log.Println("  Super Admin: admin@gantengbanget.id / admin123")
+	log.Println("  Store Admin: admin@tokotest.id  / admin123")
+	log.Println("  Members: M001 (gold), M002 (silver), M003 (premium)")
+	log.Println("  Invoices: INV-001 (paid), INV-002 (sent), INV-003 (draft)")
 }
