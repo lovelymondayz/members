@@ -241,10 +241,16 @@ func (s *AuthService) HandleGoogleCallback(code string) (*models.User, string, e
 
 // ─── Admin Onboarding ──────────────────────────────────
 
-func (s *AuthService) CreateAdminWithStore(name, email string) (*models.User, *models.Store, error) {
-	// Create admin user (no password — they set it later or use Google)
+func (s *AuthService) CreateAdminWithStore(name, email, password, storeName, address, phone, cardColorHex string) (*models.User, *models.Store, error) {
+	// Create admin user
 	adminRoleID := uint(2)
-	hashedPass, _ := HashPassword(randomPassword()) // temp password
+	
+	// Use provided password or generate random one
+	pw := password
+	if pw == "" {
+		pw = randomPassword()
+	}
+	hashedPass, _ := HashPassword(pw)
 
 	admin := &models.User{
 		RoleID:   adminRoleID,
@@ -257,9 +263,21 @@ func (s *AuthService) CreateAdminWithStore(name, email string) (*models.User, *m
 		return nil, nil, fmt.Errorf("failed to create admin: %w", err)
 	}
 
+	storeNameToUse := storeName
+	if storeNameToUse == "" {
+		storeNameToUse = name + "'s Store"
+	}
+
 	store := &models.Store{
-		AdminID: admin.UserID,
-		Name:    name + "'s Store",
+		AdminID:      admin.UserID,
+		Name:         storeNameToUse,
+		Address:      address,
+		Phone:        phone,
+		CardColorHex: cardColorHex,
+	}
+
+	if store.CardColorHex == "" {
+		store.CardColorHex = "#1E40AF"
 	}
 
 	if err := s.storeRepo.Create(store); err != nil {

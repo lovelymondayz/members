@@ -102,11 +102,15 @@ func main() {
 	stores.Use(middleware.RoleRequired("super_admin"))
 	stores.GET("", storeHandler.GetStores)
 	stores.POST("", storeHandler.CreateStore)
+	stores.PUT("/:id", storeHandler.UpdateStore)
+	stores.DELETE("/:id", storeHandler.DeleteStore)
 
 	admin := protected.Group("/admin")
 	admin.Use(middleware.RoleRequired("super_admin"))
 	admin.GET("/admins", adminHandler.GetAdmins)
 	admin.POST("/admins", adminHandler.CreateAdmin)
+	admin.PUT("/admins/:id", adminHandler.UpdateAdmin)
+	admin.DELETE("/admins/:id", adminHandler.DeleteAdmin)
 	admin.GET("/dashboard", adminHandler.DashboardStats)
 
 	addr := ":" + cfg.Port

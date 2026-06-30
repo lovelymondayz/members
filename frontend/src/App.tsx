@@ -3,6 +3,8 @@ import { useAuthStore } from './store/authStore'
 import MainLayout from './layouts/MainLayout'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
+import AdminsPage from './pages/AdminsPage'
+import StoresPage from './pages/StoresPage'
 import MembersPage from './pages/MembersPage'
 import MemberCardPage from './pages/MemberCardPage'
 import InvoicesPage from './pages/InvoicesPage'
@@ -33,6 +35,16 @@ export default function App() {
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="admins" element={
+          <ProtectedRoute allowedRoles={['super_admin']}>
+            <AdminsPage />
+          </ProtectedRoute>
+        } />
+        <Route path="stores" element={
+          <ProtectedRoute allowedRoles={['super_admin']}>
+            <StoresPage />
+          </ProtectedRoute>
+        } />
         <Route path="members" element={
           <ProtectedRoute allowedRoles={['super_admin', 'admin']}>
             <MembersPage />

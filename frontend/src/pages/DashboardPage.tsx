@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { api } from '../api/client'
+import { getAdmins } from '../api/admin'
 import { useAuthStore } from '../store/authStore'
 
 export default function DashboardPage() {
@@ -10,14 +11,15 @@ export default function DashboardPage() {
   const { data: stats } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
+      if (isSuperAdmin) {
+        const res = await api.get('/admin/dashboard')
+        const admins = await getAdmins()
+        return { ...res.data, total_admins: admins.length }
+      }
       try {
-        const endpoint = isSuperAdmin ? '/admin/dashboard' : '/members'
-        const res = await api.get(endpoint)
-        if (isSuperAdmin) {
-          return res.data as { total_stores: number; total_members: number; total_revenue: number }
-        }
+        const res = await api.get('/members')
         const members = res.data as unknown[]
-        return { total_stores: 0, total_members: members.length, total_revenue: 0 }
+        return { total_stores: 0, total_members: members.length, total_revenue: 0, total_admins: 0 }
       } catch {
         return null
       }
@@ -27,6 +29,7 @@ export default function DashboardPage() {
   const statCards = user?.role === 'super_admin'
     ? [
         { title: 'Total Stores', value: String(stats?.total_stores ?? 0), icon: '🏪' },
+        { title: 'Store Admins', value: String(stats?.total_admins ?? 0), icon: '🛡️' },
         { title: 'Total Members', value: String(stats?.total_members ?? 0), icon: '👥' },
         { title: 'Total Revenue', value: `Rp ${(stats?.total_revenue ?? 0).toLocaleString('id-ID')}`, icon: '💰' },
       ]
@@ -41,7 +44,7 @@ export default function DashboardPage() {
       <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
       <p className="text-gray-500 mt-1">Welcome back, {user?.name}</p>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
         {statCards.map((card) => (
           <StatCard key={card.title} title={card.title} value={card.value} icon={card.icon} />
         ))}

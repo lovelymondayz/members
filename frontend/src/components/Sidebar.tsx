@@ -3,6 +3,8 @@ import { useAuthStore } from '../store/authStore'
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: '📊', roles: ['super_admin', 'admin', 'member'] },
+  { to: '/admins', label: 'Admins', icon: '🛡️', roles: ['super_admin'] },
+  { to: '/stores', label: 'Stores', icon: '🏪', roles: ['super_admin'] },
   { to: '/members', label: 'Members', icon: '👥', roles: ['super_admin', 'admin'] },
   { to: '/invoices', label: 'Invoices', icon: '📄', roles: ['super_admin', 'admin'] },
   { to: '/my-invoices', label: 'My Invoices', icon: '📄', roles: ['member'] },
