@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../store/authStore'
 import { api } from '../api/client'
 
@@ -6,7 +7,13 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const { setAuth } = useAuthStore()
+  const { setAuth, isAuthenticated } = useAuthStore()
+  const navigate = useNavigate()
+
+  // Redirect if already logged in
+  if (isAuthenticated) {
+    navigate('/dashboard', { replace: true })
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -14,6 +21,7 @@ export default function LoginPage() {
     try {
       const res = await api.post('/auth/login', { email, password })
       setAuth(res.data.user, res.data.token)
+      navigate('/dashboard', { replace: true })
     } catch {
       alert('Login failed')
     } finally {
