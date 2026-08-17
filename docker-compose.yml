@@ -2,6 +2,11 @@ services:
   db:
     image: postgres:16-alpine
     container_name: members-db
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     environment:
       POSTGRES_USER: members
       POSTGRES_PASSWORD: members_secret
