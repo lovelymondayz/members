@@ -2,6 +2,9 @@ services:
   db:
     image: postgres:16-alpine
     container_name: members-db
+    restart: unless-stopped
+    env_file:
+      - .env
     logging:
       driver: json-file
       options:
@@ -26,6 +29,9 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: members-backend
+    restart: unless-stopped
+    env_file:
+      - .env
     ports:
       - "8082:8082"
     environment:
@@ -49,6 +55,9 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: members-frontend
+    restart: unless-stopped
+    env_file:
+      - .env
     ports:
       - "3003:80"
     depends_on:

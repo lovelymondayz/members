@@ -1,6 +1,10 @@
 node_modules
-dist
-.git
-*.log
 .env
-.env.local
+Dockerfile
+.git
+dist
+build
+*.log
+.DS_Store
+backend/.env
+frontend/.env
